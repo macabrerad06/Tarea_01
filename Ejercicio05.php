@@ -1,6 +1,9 @@
 <?php
 
+
+// Clase abstracta que define la estructura para resolver ecuaciones diferenciales
 abstract class EcuacionDiferencial {
+    // Método abstracto que debe implementar el método de Euler
     abstract public function resolverEuler(
         callable $funcion_diferencial, 
         float $x0, 
@@ -10,7 +13,7 @@ abstract class EcuacionDiferencial {
     ): array;
 }
 
-
+// Clase que implementa el método de Euler para resolver ecuaciones diferenciales
 class EulerNumerico extends EcuacionDiferencial {
     
     public function resolverEuler(
@@ -20,51 +23,51 @@ class EulerNumerico extends EcuacionDiferencial {
         float $h,
         float $x_final
     ): array {
-        $solucion = [];
-        $x = $x0;
-        $y = $y0;
+        $solucion = []; // Arreglo para almacenar los resultados
+        $x = $x0;       // Valor inicial de x
+        $y = $y0;       // Valor inicial de y
 
+        $solucion[(string)$x0] = $y0; // Guarda el valor inicial
 
-        $solucion[(string)$x0] = $y0; 
-
-
+        // Calcula el número de pasos necesarios
         $num_pasos = (int)ceil(($x_final - $x0) / $h);
 
+        // Bucle principal del método de Euler
         for ($i = 0; $i < $num_pasos; $i++) {
 
+            // Calcula la derivada en el punto actual
             $dy_dx = call_user_func($funcion_diferencial, $x, $y);
 
-
+            // Calcula el siguiente valor de y usando Euler
             $y_siguiente = $y + ($h * $dy_dx);
 
-
+            // Calcula el siguiente valor de x
             $x_siguiente = $x + $h;
 
-
+            // Ajusta el último paso si se pasa del valor final de x
             if ($x_siguiente > $x_final && $x < $x_final) {
-
                 $h_ajustado = $x_final - $x;
                 $y_siguiente = $y + ($h_ajustado * $dy_dx);
                 $x_siguiente = $x_final;
             }
 
-
+            // Guarda el resultado en el arreglo
             $solucion[(string)$x_siguiente] = $y_siguiente;
 
-
+            // Actualiza x e y para el siguiente paso
             $x = $x_siguiente;
             $y = $y_siguiente;
 
-
+            // Si se alcanzó o superó el valor final de x, termina el bucle
             if ($x >= $x_final) {
                 break;
             }
         }
-        return $solucion;
+        return $solucion; // Devuelve la solución aproximada
     }
 }
 
-
+// Función para aplicar el método de Euler usando los parámetros dados
 function aplicarMetodo(
     callable $ecuacion_diferencial,
     array $condiciones_iniciales,
@@ -79,18 +82,17 @@ function aplicarMetodo(
     return $euler_solver->resolverEuler($ecuacion_diferencial, $x0, $y0, $h, $x_final);
 }
 
-
+// Ejemplo de ecuación diferencial: dy/dx = x + y
 function miEcuacionDiferencial(float $x, float $y): float {
     return $x + $y;
 }
 
-
+// Ejemplo de ecuación diferencial: dy/dx = -2y
 function otraEcuacionDiferencial(float $x, float $y): float {
     return -2 * $y;
 }
 
-
-
+// --- Interfaz de usuario por consola ---
 
 echo "--- Resolución de Ecuaciones Diferenciales con el Método de Euler ---\n\n";
 
@@ -100,6 +102,7 @@ echo "2. dy/dx = -2y\n";
 echo "Ingrese el número de la opción deseada: ";
 $opcion_ecuacion = (int) trim(fgets(STDIN));
 
+// Selecciona la ecuación diferencial según la opción del usuario
 $ecuacion_seleccionada = null;
 switch ($opcion_ecuacion) {
     case 1:
@@ -118,12 +121,15 @@ switch ($opcion_ecuacion) {
 
 echo "\n--- Ingrese las condiciones iniciales y parámetros del método ---\n";
 
+// Solicita el valor inicial de x
 echo "Valor inicial de x (x0): ";
 $x0_usuario = (float) trim(fgets(STDIN));
 
+// Solicita el valor inicial de y
 echo "Valor inicial de y (y0): ";
 $y0_usuario = (float) trim(fgets(STDIN));
 
+// Solicita el tamaño del paso
 echo "Tamaño del paso (h, ej. 0.1): ";
 $h_usuario = (float) trim(fgets(STDIN));
 if ($h_usuario <= 0) {
@@ -131,6 +137,7 @@ if ($h_usuario <= 0) {
     $h_usuario = 0.1;
 }
 
+// Solicita el valor final de x
 echo "Valor final de x (x_final, ej. 1.0): ";
 $x_final_usuario = (float) trim(fgets(STDIN));
 if ($x_final_usuario < $x0_usuario) {
@@ -138,7 +145,7 @@ if ($x_final_usuario < $x0_usuario) {
     $x_final_usuario = $x0_usuario + 1.0;
 }
 
-
+// Arreglos con las condiciones iniciales y parámetros del método
 $condiciones_iniciales_usuario = [
     'x0' => $x0_usuario,
     'y0' => $y0_usuario
@@ -151,16 +158,17 @@ $parametros_metodo_usuario = [
 
 echo "\nCalculando la solución aproximada...\n";
 
+// Llama a la función para resolver la ecuación diferencial
 $solucion_aproximada = aplicarMetodo(
     $ecuacion_seleccionada,
     $condiciones_iniciales_usuario,
     $parametros_metodo_usuario
 );
 
+// Muestra los resultados
 echo "\n--- Solución Aproximada (Valores y en función de x) ---\n";
 foreach ($solucion_aproximada as $x_val_str => $y_val) {
     $x_val = (float) $x_val_str;
     echo sprintf("x = %.4f, y = %.4f\n", $x_val, $y_val);
 }
 
-?>

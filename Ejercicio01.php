@@ -18,16 +18,19 @@ class SistemaLineal extends SistemaEcuaciones {
 
         $denominador_y = ($a1 * $b2) - ($a2 * $b1);
 
+        //analiza que el denominador no sea cero
         if ($denominador_y == 0) {
             if (($a1 * $c2) - ($a2 * $c1) == 0) {
                 return ['mensaje' => 'El sistema tiene infinitas soluciones o las ecuaciones son dependientes.'];
             } else {
-                return ['mensaje' => 'El sistema no tiene solución (líneas paralelas).'];
+                return ['mensaje' => 'El sistema no tiene solución.'];
             }
         }
 
+        //obtiene el valor de Y
         $y = (($a1 * $c2) - ($a2 * $c1)) / $denominador_y;
 
+        //analiza cual es el valor indicado de X
         if ($a1 != 0) {
             $x = ($c1 - ($b1 * $y)) / $a1;
         } elseif ($a2 != 0) {
@@ -35,10 +38,13 @@ class SistemaLineal extends SistemaEcuaciones {
         } else {
             return ['mensaje' => 'No se puede despejar x.'];
         }
+
+        //devuelve los valores para impresion en un array asociado
         return ['x' => $x, 'y' => $y];
     }
 
     public function validarConsistencia(array $ecuacion1, array $ecuacion2): bool {
+        //revisa que los valores dentro de las ecuaciones exitan y dado caso los tome como valor 0
         $a1 = $ecuacion1['x'] ?? 0;
         $b1 = $ecuacion1['y'] ?? 0;
         $a2 = $ecuacion2['x'] ?? 0;
@@ -51,7 +57,9 @@ class SistemaLineal extends SistemaEcuaciones {
 }
 
 function resolverSistema(array $ecuacion1, array $ecuacion2): array {
+    
     $sistema = new SistemaLineal();
+
     if ($sistema->validarConsistencia($ecuacion1, $ecuacion2)) {
         return $sistema->calcularResultado($ecuacion1, $ecuacion2);
     } else {

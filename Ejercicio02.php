@@ -1,80 +1,74 @@
 <?php
+
 abstract class Estadistica {
     abstract public function calcularMedia(array $datos): float; 
     abstract public function calcularMediana(array $datos): float; 
     abstract public function calcularModa(array $datos): array;
 }
 
+
 class EstadisticaBasica extends Estadistica {
-    public function calcularMedia(array $datos): float { 
-        if (empty($datos)) {
-            return 0.0;
-        }
+    
+    public function calcularMedia(array $datos): float {
+        if (empty($datos)) return 0.0;
         return array_sum($datos) / count($datos);
     }
 
     public function calcularMediana(array $datos): float {
-        if (empty($datos)) {
-            return 0.0;
-        }
-        sort($datos); 
+        if (empty($datos)) return 0.0;
+
+        sort($datos);
         $n = count($datos);
         $mitad = floor($n / 2);
 
-        if ($n % 2 === 1) { 
-            return $datos[$mitad];
-        } else { 
-            return ($datos[$mitad - 1] + $datos[$mitad]) / 2;
-        }
+        // Si es impar, devuelve el del medio; si es par, promedio de los dos centrales
+        return ($n % 2 === 1) 
+            ? $datos[$mitad] 
+            : ($datos[$mitad - 1] + $datos[$mitad]) / 2;
     }
 
     public function calcularModa(array $datos): array {
-        if (empty($datos)) {
-            return [];
-        }
+        if (empty($datos)) return [];
 
         $frecuencias = [];
         foreach ($datos as $valor) {
             $frecuencias[(string)$valor] = ($frecuencias[(string)$valor] ?? 0) + 1;
         }
 
-        $maxFrecuencia = 0;
-        foreach ($frecuencias as $valor_str => $frecuencia) {
-            if ($frecuencia > $maxFrecuencia) {
-                $maxFrecuencia = $frecuencia;
-            }
-        }
+        $maxFrecuencia = max($frecuencias);
 
         $modas = [];
         foreach ($frecuencias as $valor_str => $frecuencia) {
             if ($frecuencia === $maxFrecuencia) {
-                $modas[] = (float) $valor_str; 
+                $modas[] = (float) $valor_str;
             }
         }
-        if ($maxFrecuencia === 1 && count($modas) === count($datos) && count($datos) > 0) {
-             return [];
+
+        // Si todos tienen la misma frecuencia (sin moda), devuelve array vacío
+        if ($maxFrecuencia === 1 && count($modas) === count($datos)) {
+            return [];
         }
+
         return $modas;
     }
 }
 
+// Genera un informe con media, mediana y moda para varios conjuntos
 function generarInforme(array $conjuntos_de_datos): array {
     $informe = [];
     $estadisticaBasica = new EstadisticaBasica();
 
     foreach ($conjuntos_de_datos as $identificador => $datos) {
-        $media = $estadisticaBasica->calcularMedia($datos);
-        $mediana = $estadisticaBasica->calcularMediana($datos);
-        $moda = $estadisticaBasica->calcularModa($datos);
-
         $informe[$identificador] = [
-            'media' => $media,
-            'mediana' => $mediana,
-            'moda' => $moda
+            'media' => $estadisticaBasica->calcularMedia($datos),
+            'mediana' => $estadisticaBasica->calcularMediana($datos),
+            'moda' => $estadisticaBasica->calcularModa($datos)
         ];
     }
+
     return $informe;
 }
+
 
 $todos_los_datos = []; 
 
